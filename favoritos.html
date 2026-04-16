@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Favoritos</title>
+
+<link rel="stylesheet" href="home.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* =========================================
+   ESTILOS ESPECÍFICOS: TELA DE FAVORITOS
+   ========================================= */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #f7f3ee;
+    padding-bottom: 80px;
+    display: flex;
+    justify-content: center;
+}
+
+.container {
+    width: 100%;
+    max-width: 480px;
+    background: #f7f3ee;
+    min-height: 100vh;
+    position: relative;
+}
+
+/* --- Topo --- */
+.topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 16px 10px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #f7f3ee;
+}
+
+.topo h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #3b4560;
+}
+
+.voltar {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    font-size: 26px;
+    color: #3b4560;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+/* --- Header e Busca --- */
+.header-info {
+    padding: 10px 16px 20px;
+}
+
+.contador-destaque {
+    font-size: 24px;
+    font-weight: 800;
+    color: #3b4560;
+    margin-bottom: 16px;
+}
+
+.buscar {
+    position: relative;
+}
+
+.buscar svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    fill: #999;
+}
+
+.buscar input {
+    width: 100%;
+    padding: 14px 16px 14px 44px;
+    border-radius: 12px;
+    border: 1px solid #e2ded9;
+    background: white;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    outline: none;
+    color: #333;
+}
+
+.buscar input::placeholder {
+    color: #aaa;
+}
+
+/* --- Grid de Livros --- */
+.livros-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    padding: 0 16px 16px;
+}
+
+.livro {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    animation: fadeUp 0.4s ease forwards;
+}
+
+.capa-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: #eaeaea;
+}
+
+.capa-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.bandeira-favorito {
+    position: absolute;
+    top: 0;
+    right: 12px;
+    width: 24px;
+    height: 36px;
+    background-color: #558972;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+    cursor: pointer;
+    z-index: 2;
+    border-radius: 0 0 2px 2px;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.bandeira-favorito:active {
+    transform: scale(0.9);
+}
+
+.bandeira-favorito.desmarcado {
+    background-color: #a0a0a0;
+}
+
+/* --- Rodapé do Livro (Nota e Menu) --- */
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    position: relative; /* Necessário para ancorar o popover de estrelas */
+}
+
+.nota-badge {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #e8e6e1;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #333;
+}
+
+.nota-badge svg {
+    width: 12px;
+    height: 12px;
+    fill: #fbbd08;
+}
+
+.btn-opcoes {
+    background: #e8e6e1;
+    border: none;
+    width: 32px;
+    height: 24px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #666;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 1px;
+    padding-bottom: 6px;
+    transition: background 0.2s;
+}
+
+.btn-opcoes:hover, .btn-opcoes:active {
+    background: #dcdad5;
+}
+
+/* --- Menu Flutuante de Avaliação (Estrelas) --- */
+.rating-popover {
+    position: absolute;
+    bottom: calc(100% + 8px); /* Posiciona logo acima do rodapé */
+    right: 0;
+    background: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    display: none; /* Escondido por padrão */
+    gap: 4px;
+    z-index: 20;
+    align-items: center;
+}
+
+.rating-popover.active {
+    display: flex;
+    animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes popIn {
+    from { opacity: 0; transform: scale(0.8) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.rating-popover svg {
+    width: 22px;
+    height: 22px;
+    fill: #e2ded9; /* Cinza claro para estrela vazia */
+    cursor: pointer;
+    transition: transform 0.1s, fill 0.2s;
+}
+
+.rating-popover svg:hover {
+    transform: scale(1.15);
+}
+
+.rating-popover svg.filled {
+    fill: #fbbd08; /* Amarelo para estrela preenchida */
+}
+
+
+/* --- Menu Navegação Inferior --- */
+.menu {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    max-width: 480px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0 16px 0;
+    z-index: 50;
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+}
+
+.menu a {
+    text-decoration: none;
+    color: #999;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.menu div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.menu svg {
+    width: 26px;
+    height: 26px;
+    margin-bottom: 4px;
+    fill: currentColor;
+}
+
+.menu .ativo {
+    color: #3b4560;
+}
+
+.menu .ativo svg {
+    fill: #fbbd08;
+}
+
+.sem-resultados {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+    font-size: 14px;
+    grid-column: 1 / -1;
+}
+
+.tracinho-ios {
+    width: 130px;
+    height: 5px;
+    background: #ccc;
+    border-radius: 3px;
+    margin: 20px auto 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <header class="topo">
+        <button class="voltar" onclick="history.back()">‹</button>
+        <h1>Favoritos</h1>
+        <div style="width:24px;"></div>
+    </header>
+
+    <section class="header-info">
+        <div class="contador-destaque" id="contador">0 encontrados</div>
+        <div class="buscar">
+            <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            <input type="text" id="search" placeholder="Digite o nome da obra ou seu autor...">
+        </div>
+    </section>
+
+    <div class="livros-grid" id="listaLivros"></div>
+
+    <div class="tracinho-ios"></div>
+
+    <div class="menu">
+        <a href="home.html">
+            <div>
+                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                <span>Home</span>
+            </div>
+        </a>
+        <a href="meuslivros.html">
+            <div>
+                <svg viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>
+                <span>Meus Livros</span>
+            </div>
+        </a>
+        <a href="favoritos.html" class="ativo">
+            <div>
+                <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                <span>Favoritos</span>
+            </div>
+        </a>
+        <a href="perfil.html">
+            <div>
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                <span>Perfil</span>
+            </div>
+        </a>
+    </div>
+</div>
+
+<script>
+// Dados base dos livros
+let livrosData = [
+    { id: 1, titulo: "Caça ao Lobisomem", autor: "Toni Brandão", imagem: "https://globaleditora.com.br/capas/400/3450.jpg", nota: 5.0, favorito: true },
+    { id: 2, titulo: "Do Baú Voam os Trapos", autor: "Ariane Sapucaia", imagem: "https://editoraurutau.com/wp-content/uploads/2024/12/capa_dobau.jpg", nota: 5.0, favorito: true },
+    { id: 3, titulo: "O Deus Que Destrói Sonhos", autor: "Rodrigo Bibo", imagem: "https://m.media-amazon.com/images/I/91VxtptiBgL.jpg", nota: 5.0, favorito: true },
+    { id: 4, titulo: "Textos para tocar cicatrizes", autor: "Igor Pires", imagem: "https://m.media-amazon.com/images/I/81BTIjoeeYL.jpg", nota: 5.0, favorito: true },
+    { id: 5, titulo: "Coraline", autor: "Neil Gaiman", imagem: "https://m.media-amazon.com/images/M/MV5BYzU1YzEwOTEtY2IzNC00ODBhLWEwZTYtMzNmZDdjODBkMTU3XkEyXkFqcGc@._V1_.jpg", nota: 5.0, favorito: true },
+    { id: 6, titulo: "Bíblia Sagrada", autor: "Vários", imagem: "https://m.media-amazon.com/images/I/71-iYQS2XuL._UF1000,1000_QL80_.jpg", nota: 5.0, favorito: true }
+];
+
+const livrosContainer = document.getElementById('listaLivros');
+const searchInput = document.getElementById('search');
+const contador = document.getElementById('contador');
+
+function renderizarLivros(filtro = '') {
+    const termo = filtro.toLowerCase().trim();
+
+    const filtrados = livrosData.filter(livro =>
+        livro.titulo.toLowerCase().includes(termo) ||
+        livro.autor.toLowerCase().includes(termo)
+    );
+
+    contador.textContent = `${filtrados.length} encontrados`;
+    livrosContainer.innerHTML = '';
+
+    if (filtrados.length === 0) {
+        livrosContainer.innerHTML = '<div class="sem-resultados">Nenhum livro encontrado</div>';
+        return;
+    }
+
+    filtrados.forEach(livro => {
+        const div = document.createElement('div');
+        div.className = 'livro';
+        
+        // Função para gerar as 5 estrelas do popover
+        const starsHTML = [1, 2, 3, 4, 5].map(starValue => `
+            <svg class="${starValue <= Math.floor(livro.nota) ? 'filled' : ''}" onclick="setRating(${livro.id}, ${starValue}, event)" viewBox="0 0 24 24">
+                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+        `).join('');
+
+        div.innerHTML = `
+            <div class="capa-container">
+                <div class="bandeira-favorito ${!livro.favorito ? 'desmarcado' : ''}" onclick="toggleFavorito(${livro.id})"></div>
+                <img src="${livro.imagem}" alt="${livro.titulo}">
+            </div>
+            
+            <div class="card-footer">
+                <div class="nota-badge">
+                    <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                    <span>${livro.nota.toFixed(1)}</span>
+                </div>
+                <button class="btn-opcoes" onclick="toggleRatingMenu(${livro.id}, event)">...</button>
+                
+                <div class="rating-popover" id="popover-${livro.id}">
+                    ${starsHTML}
+                </div>
+            </div>
+        `;
+        livrosContainer.appendChild(div);
+    });
+}
+
+// Mostra/Esconde o menu de estrelas
+window.toggleRatingMenu = function(id, event) {
+    event.stopPropagation(); // Impede que o clique se propague pro document
+    
+    // Fecha qualquer outro popover que esteja aberto
+    document.querySelectorAll('.rating-popover').forEach(el => {
+        if(el.id !== `popover-${id}`) el.classList.remove('active');
+    });
+
+    // Alterna o popover atual
+    const popover = document.getElementById(`popover-${id}`);
+    if(popover) {
+        popover.classList.toggle('active');
+    }
+};
+
+// Define a nova nota
+window.setRating = function(id, novaNota, event) {
+    event.stopPropagation();
+    const livro = livrosData.find(l => l.id === id);
+    if(livro) {
+        livro.nota = novaNota;
+        renderizarLivros(searchInput.value); // Ao re-renderizar, o popover se fecha naturalmente
+    }
+};
+
+window.toggleFavorito = function(id) {
+    const livro = livrosData.find(l => l.id === id);
+    if(livro) {
+        livro.favorito = !livro.favorito;
+        renderizarLivros(searchInput.value);
+    }
+};
+
+// Fechar popover ao clicar em qualquer outro lugar da tela
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('.rating-popover') && !event.target.closest('.btn-opcoes')) {
+        document.querySelectorAll('.rating-popover.active').forEach(el => {
+            el.classList.remove('active');
+        });
+    }
+});
+
+searchInput.addEventListener('input', e => renderizarLivros(e.target.value));
+
+renderizarLivros();
+</script>
+
+</body>
+</html>
